@@ -1,4 +1,5 @@
-import type { FileDocument, MarkdownFile, ScanStatus, SearchResult } from './types'
+import { documentTitle, folderOf } from './format'
+import type { FileDocument, MarkdownFile, MatchType, ScanStatus, SearchResult } from './types'
 
 interface BackendFile {
   id: string
@@ -7,9 +8,14 @@ interface BackendFile {
   root: string
   size: number
   modified_at: string
+  created_at?: string | null
+  title?: string | null
+  tags?: string[] | null
+  word_count?: number | null
   content?: string
-  match_type?: 'filename' | 'path' | 'content'
+  match_type?: MatchType
   snippet?: string | null
+  matches?: number | null
 }
 
 interface BackendStatus {
@@ -80,8 +86,13 @@ function mapFile(file: BackendFile): MarkdownFile {
     id: file.id,
     name: file.name,
     path: file.relative_path,
+    folder: folderOf(file.relative_path),
     size: file.size,
     modifiedAt: file.modified_at,
+    createdAt: file.created_at ?? undefined,
+    title: documentTitle({ title: file.title ?? undefined, name: file.name, path: file.relative_path }),
+    tags: file.tags ?? [],
+    wordCount: file.word_count ?? 0,
   }
 }
 
@@ -90,7 +101,12 @@ function mapDocument(file: BackendFile): FileDocument {
 }
 
 function mapResult(file: BackendFile): SearchResult {
-  return { ...mapFile(file), excerpt: file.snippet ?? undefined }
+  return {
+    ...mapFile(file),
+    excerpt: file.snippet ?? undefined,
+    matchType: file.match_type,
+    matches: file.matches ?? undefined,
+  }
 }
 
 function mapStatus(status: BackendStatus): ScanStatus {

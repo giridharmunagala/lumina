@@ -1,0 +1,120 @@
+/* Settings panel, command palette, shortcut sheet. */
+
+.settings-panel {
+  position: absolute;
+  z-index: 40;
+  top: 54px;
+  right: var(--step-3);
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  display: grid;
+  gap: var(--step-4);
+  padding: var(--step-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  animation: fade .16s ease;
+}
+.settings-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.settings-panel label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 600; }
+.settings-panel select {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.settings-panel input[type="range"] { width: 100%; accent-color: var(--accent); }
+.range-title { display: flex; justify-content: space-between; }
+.range-title output { color: var(--text); font-family: var(--font-mono); font-weight: 400; }
+.switch-row { display: flex !important; align-items: center; justify-content: space-between; gap: var(--step-4); }
+.switch-row input { width: 34px; height: 18px; accent-color: var(--accent); }
+.reset-button {
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  transition: border-color var(--transition), color var(--transition);
+}
+.reset-button:hover { border-color: var(--accent); color: var(--accent-text); }
+
+.overlay {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(40px, 12vh, 140px) var(--step-4) var(--step-4);
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+  animation: fade .14s ease;
+}
+
+.palette {
+  width: min(620px, 100%);
+  max-height: min(62vh, 560px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+}
+.palette-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--step-4);
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  color: var(--subtle);
+}
+.palette-search svg { width: 17px; height: 17px; }
+.palette-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 15px; }
+.palette-list { flex: 1; min-height: 0; overflow-y: auto; padding: var(--step-2); }
+.palette-empty { padding: var(--step-5); color: var(--subtle); font-size: 13px; text-align: center; }
+.palette-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+}
+.palette-item.active { background: var(--accent-soft); }
+.palette-icon { display: grid; place-items: center; color: var(--subtle); }
+.palette-item.active .palette-icon { color: var(--accent); }
+.palette-icon svg { width: 16px; height: 16px; }
+.palette-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.palette-copy strong { overflow: hidden; color: var(--text); font-size: 13.5px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.palette-copy span { overflow: hidden; color: var(--subtle); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.palette-enter { width: 14px; height: 14px; color: var(--accent); }
+
+.shortcuts {
+  width: min(460px, 100%);
+  display: grid;
+  gap: var(--step-4);
+  padding: var(--step-5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+}
+.shortcuts dl { display: grid; gap: 9px; margin: 0; }
+.shortcuts dl > div { display: flex; align-items: center; gap: var(--step-4); }
+.shortcuts dt { display: flex; gap: 4px; min-width: 118px; }
+.shortcuts dd { margin: 0; color: var(--muted); font-size: 12.5px; }

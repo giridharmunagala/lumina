@@ -7,6 +7,35 @@ from fastapi.testclient import TestClient
 from conftest import wait_until_idle
 
 
+def test_frontend_is_served_by_the_app(tmp_path: Path) -> None:
+    from app.config import LibraryConfig
+    from app.main import create_app
+
+    library_root = tmp_path / "library"
+    library_root.mkdir()
+    frontend_dist = tmp_path / "dist"
+    frontend_dist.mkdir()
+    (frontend_dist / "index.html").write_text(
+        "<!doctype html><title>Lumina</title>", encoding="utf-8"
+    )
+    assets = frontend_dist / "assets"
+    assets.mkdir()
+    (assets / "app.js").write_text("console.log('Lumina')", encoding="utf-8")
+
+    app = create_app(
+        LibraryConfig(roots=(library_root,)),
+        scan_on_start=False,
+        frontend_dist=frontend_dist,
+    )
+    with TestClient(app) as frontend_client:
+        assert frontend_client.get("/").text == "<!doctype html><title>Lumina</title>"
+        assert frontend_client.get("/documents/example").status_code == 200
+        assert frontend_client.get("/assets/app.js").text == "console.log('Lumina')"
+        assert frontend_client.get("/api/status").headers["content-type"].startswith(
+            "application/json"
+        )
+
+
 def test_listing_tree_and_explicit_content(client: TestClient) -> None:
     listing = client.get("/api/library/files")
     assert listing.status_code == 200

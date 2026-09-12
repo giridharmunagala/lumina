@@ -13,6 +13,10 @@ class FileMetadata(BaseModel):
     root: str
     size: int
     modified_at: datetime
+    created_at: datetime | None = None
+    title: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    word_count: int = 0
 
 
 class FileContent(FileMetadata):
@@ -22,6 +26,8 @@ class FileContent(FileMetadata):
 class SearchResult(FileMetadata):
     match_type: Literal["filename", "path", "content"]
     snippet: str | None = None
+    matches: int = 0
+    score: float = 0.0
 
 
 class StatusResponse(BaseModel):

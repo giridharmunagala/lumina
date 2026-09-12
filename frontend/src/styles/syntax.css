@@ -1,0 +1,40 @@
+/* Syntax highlighting mapped onto the active theme palette. */
+
+.hljs { color: var(--text); background: transparent; }
+.hljs-comment,
+.hljs-quote { color: var(--subtle); font-style: italic; }
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-doctag,
+.hljs-name,
+.hljs-strong { color: var(--accent-strong); font-weight: 600; }
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string { color: var(--success); }
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-selector-attr,
+.hljs-selector-pseudo { color: var(--accent); }
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-built_in,
+.hljs-type,
+.hljs-class .hljs-title { color: var(--accent-text); }
+.hljs-attr,
+.hljs-property,
+.hljs-params,
+.hljs-selector-id,
+.hljs-selector-class { color: var(--muted); }
+.hljs-meta,
+.hljs-meta .hljs-keyword { color: var(--subtle); }
+.hljs-deletion { color: var(--danger); }
+.hljs-emphasis { font-style: italic; }

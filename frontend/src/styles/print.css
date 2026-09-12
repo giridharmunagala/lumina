@@ -1,0 +1,39 @@
+/* Clean, paper-friendly output for Print / Save as PDF. */
+
+@media print {
+  html, body { overflow: visible; background: #fff; color: #111; }
+
+  .sidebar-wrap,
+  .topbar,
+  .outline,
+  .scrim,
+  .toast,
+  .overlay,
+  .settings-panel,
+  .skip-link,
+  .document-footer,
+  .code-actions,
+  .mermaid-lightbox,
+  .heading-anchor {
+    display: none !important;
+  }
+
+  .app-shell { display: block; height: auto; }
+  .main-pane, .reader-scroll { height: auto; overflow: visible; }
+  .reading-layout, .reading-layout.has-outline { display: block; }
+  .reader-article { width: 100%; max-width: 100%; padding: 0; }
+
+  .markdown-body { font-size: 11.5pt; line-height: 1.55; color: #111; }
+  .markdown-body a { color: #111; text-decoration: underline; }
+  .markdown-body a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  .markdown-body :is(h1, h2, h3, h4, blockquote, .callout, .code-block, table, img) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .markdown-body :is(h1, h2, h3) { break-after: avoid; }
+  .code-block, .markdown-body pre, .markdown-body code { background: #f6f6f6; color: #111; }
+  .mermaid-block { background: #fff; }
+  .mermaid-figure { padding: 8px 0; overflow: visible; }
+  .mermaid-figure svg { max-width: 100%; }
+  .document-path { color: #555; }
+}

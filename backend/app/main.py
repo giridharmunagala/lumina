@@ -9,6 +9,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .config import LibraryConfig
@@ -37,9 +38,15 @@ class ScanAccepted(BaseModel):
     status: StatusResponse
 
 
-def create_app(config: LibraryConfig | None = None, *, scan_on_start: bool = True) -> FastAPI:
+def create_app(
+    config: LibraryConfig | None = None,
+    *,
+    scan_on_start: bool = True,
+    frontend_dist: Path | None = None,
+) -> FastAPI:
     library_config = config or LibraryConfig.create_default()
     index = LibraryIndex(library_config)
+    frontend_dist = frontend_dist or Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -163,6 +170,17 @@ def create_app(config: LibraryConfig | None = None, *, scan_on_start: bool = Tru
                 "The image is invalid, outside the allowed root, or does not exist",
             )
         return FileResponse(Path(image))
+
+    frontend_index = frontend_dist / "index.html"
+    frontend_assets = frontend_dist / "assets"
+    if frontend_index.is_file():
+        if frontend_assets.is_dir():
+            app.mount("/assets", StaticFiles(directory=frontend_assets), name="frontend-assets")
+
+        @app.get("/{path:path}", include_in_schema=False)
+        async def frontend(path: str) -> FileResponse:
+            del path
+            return FileResponse(frontend_index)
 
     return app
 

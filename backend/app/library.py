@@ -10,6 +10,7 @@ from threading import RLock
 from typing import Literal
 
 from .config import LibraryConfig
+from .documents import describe
 from .models import FileContent, FileMetadata, SearchResult, StatusResponse, TreeNode
 
 
@@ -135,6 +136,7 @@ class LibraryIndex:
                         continue
                     file_id = hashlib.sha256(str(resolved).encode()).hexdigest()[:24]
                     relative = resolved.relative_to(root).as_posix()
+                    info = describe(content, fallback_title=resolved.stem)
                     metadata = FileMetadata(
                         id=file_id,
                         name=resolved.name,
@@ -144,15 +146,21 @@ class LibraryIndex:
                         modified_at=datetime.fromtimestamp(
                             stat.st_mtime, tz=timezone.utc
                         ),
+                        created_at=datetime.fromtimestamp(
+                            getattr(stat, "st_birthtime", stat.st_ctime), tz=timezone.utc
+                        ),
+                        title=info.title,
+                        tags=list(info.tags),
+                        word_count=info.word_count,
                     )
                     found[file_id] = IndexedFile(
                         metadata=metadata,
                         path=resolved,
                         root_path=root,
-                        content=content,
+                        content=info.body,
                         folded_name=resolved.name.casefold(),
                         folded_relative_path=relative.casefold(),
-                        folded_content=content.casefold(),
+                        folded_content=info.body.casefold(),
                     )
         return found
 
@@ -175,7 +183,15 @@ class LibraryIndex:
             content = item.path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             return None
-        return FileContent(**item.metadata.model_dump(), content=content)
+        info = describe(content, fallback_title=item.path.stem)
+        metadata = item.metadata.model_copy(
+            update={
+                "title": info.title,
+                "tags": list(info.tags),
+                "word_count": info.word_count,
+            }
+        )
+        return FileContent(**metadata.model_dump(), content=info.body)
 
     @staticmethod
     def _still_safe(item: IndexedFile) -> bool:
@@ -220,28 +236,56 @@ class LibraryIndex:
             return []
         with self._lock:
             files = tuple(self._files.values())
+        newest = max((item.metadata.modified_at for item in files), default=None)
+        oldest = min((item.metadata.modified_at for item in files), default=None)
+        span = (newest - oldest).total_seconds() if newest and oldest else 0.0
         results: list[SearchResult] = []
         for item in files:
             match_type: Literal["filename", "path", "content"] | None = None
             snippet: str | None = None
+            matches = 0
+            score = 0.0
+            folded_title = (item.metadata.title or "").casefold()
             if mode in ("all", "filename") and needle in item.folded_name:
                 match_type = "filename"
+                score = 100.0
+            elif mode in ("all", "filename") and needle in folded_title:
+                match_type = "filename"
+                score = 85.0
             elif mode in ("all", "path") and needle in item.folded_relative_path:
                 match_type = "path"
+                score = 60.0
             elif mode in ("all", "content") and needle in item.folded_content:
                 match_type = "content"
-                snippet = self._snippet(item.content, item.folded_content.find(needle), len(needle))
-            if match_type is not None:
-                results.append(
-                    SearchResult(
-                        **item.metadata.model_dump(),
-                        match_type=match_type,
-                        snippet=snippet,
-                    )
+                position = item.folded_content.find(needle)
+                matches = item.folded_content.count(needle)
+                snippet = self._snippet(item.content, position, len(needle))
+                score = 30.0 + min(10.0, matches)
+            if match_type is None:
+                continue
+            if match_type == "filename":
+                stem = item.folded_name.rsplit(".", 1)[0]
+                if stem == needle:
+                    score += 25.0
+                elif item.folded_name.startswith(needle):
+                    score += 12.0
+                matches = matches or 1
+            if span > 0 and newest is not None:
+                age = (newest - item.metadata.modified_at).total_seconds()
+                score += 8.0 * (1.0 - age / span)
+            results.append(
+                SearchResult(
+                    **item.metadata.model_dump(),
+                    match_type=match_type,
+                    snippet=snippet,
+                    matches=matches,
+                    score=round(score, 3),
                 )
-                if len(results) >= limit:
-                    break
-        return results
+            )
+        results.sort(
+            key=lambda result: (-result.score, result.relative_path.casefold())
+        )
+        return results[:limit]
 
     @staticmethod
     def _snippet(content: str, position: int, needle_length: int) -> str:

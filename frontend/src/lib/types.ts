@@ -1,21 +1,25 @@
+export type MatchType = 'filename' | 'path' | 'content'
+
 export interface MarkdownFile {
   id: string
   name: string
   path: string
+  folder: string
   size: number
   modifiedAt: string
-  title?: string
-  wordCount?: number
-  content?: string
+  createdAt?: string
+  title: string
+  tags: string[]
+  wordCount: number
 }
 
 export interface FileDocument extends MarkdownFile {
   content: string
-  createdAt?: string
 }
 
 export interface SearchResult extends MarkdownFile {
   excerpt?: string
+  matchType?: MatchType
   matches?: number
 }
 
